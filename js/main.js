@@ -122,19 +122,19 @@ function putBlocks() {
   var core = Core.instance;
 
   for (var i = 0; i < 2; i++) {
-    var mb = new MacroBlock(0, 70+620*i, 220);
+    var mb = new MacroBlock(0,  70 + 620 * i, 220);
     core.rootScene.addChild(mb);
-    var mb = new MacroBlock(1, 130+620*i, 220);
+    var mb = new MacroBlock(1, 130 + 620 * i, 220);
     core.rootScene.addChild(mb);
-    var mb = new MacroBlock(2, 70+620*i, 400);
+    var mb = new MacroBlock(2,  70 + 620 * i, 400);
     core.rootScene.addChild(mb);
-    var mb = new MacroBlock(3, 220+620*i, 370);
+    var mb = new MacroBlock(3, 220 + 620 * i, 370);
     core.rootScene.addChild(mb);
-    var mb = new MacroBlock(4, 70+620*i, 460);
+    var mb = new MacroBlock(4,  70 + 620 * i, 460);
     core.rootScene.addChild(mb);
-    var mb = new MacroBlock(5, 220+620*i, 490);
+    var mb = new MacroBlock(5, 220 + 620 * i, 490);
     core.rootScene.addChild(mb);
-    var mb = new MacroBlock(6, 220+620*i, 250);
+    var mb = new MacroBlock(6, 220 + 620 * i, 250);
     core.rootScene.addChild(mb);
   }
 }

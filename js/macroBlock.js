@@ -105,17 +105,18 @@ var MacroBlock = Class.create(Group, {
 
   handleDrag: function(ev) {
     if (this.isRightPressed) { return; }
+
     this.moveTo(this.baseX + (ev.x - this.startX),
                 this.baseY + (ev.y - this.startY));
   },
 
   handleRelease: function(ev) {
+    var core = Core.instance;
+    var board = core.board;
+
     var nearestPos = this.getNearestPos();
 
     if (this.canBePlacedAt(nearestPos.x, nearestPos.y)) {
-      this.moveToNearest(nearestPos.x, nearestPos.y);
-
-      var board = Core.instance.board;
       var order = blockCords[this.colorID][this.direction];
 
       for (var i = 0; i < 4; i++) {
@@ -125,9 +126,52 @@ var MacroBlock = Class.create(Group, {
           = this.colorID;
         board.nums[nearestPos.y + relativeY][nearestPos.x + relativeX]
           = this.numbers[i];
-      }
-      board.updateColors();
 
+        var boardNumberImg = new Sprite(30, 30);
+        boardNumberImg.image = core.assets["img/numbers.png"];
+        boardNumberImg.x = (nearestPos.x + relativeX) * 30 + 380;
+        boardNumberImg.y = (nearestPos.y + relativeY) * 30 + 260;
+        boardNumberImg.frame = this.numbers[i] -1;
+
+        board.array = [];
+        board.prevPos = { x: null, y: null }; // before dragging
+
+        boardNumberImg.addEventListener("touchmove", function(ev) {
+          var currentPos = calcPosFromPx(ev.x, ev.y);
+
+          if (board.prevPos.x === null && board.prevPos.y === null &&
+              board.nums[currentPos.y][currentPos.x] === 1) {
+            board.array.push(1);
+            board.prevPos = currentPos;
+            return;
+          }
+
+          if ((currentPos.x === board.prevPos.x + 1 && currentPos.y === board.prevPos.y) ||
+              (currentPos.x === board.prevPos.x - 1 && currentPos.y === board.prevPos.y) ||
+              (currentPos.x === board.prevPos.x && currentPos.y === board.prevPos.y + 1) ||
+              (currentPos.x === board.prevPos.x && currentPos.y === board.prevPos.y - 1)) {
+            if (board.array.length < 4) {
+              board.array.push(board.nums[currentPos.y][currentPos.x]);
+              board.prevPos = currentPos;
+            }
+          }
+        });
+
+        boardNumberImg.addEventListener("touchend", function(ev) {
+          if (board.array[0] === 1 && board.array[1] === 2 &&
+              board.array[2] === 3 && board.array[3] === 4) {
+            makeChain();
+          }
+
+          board.array = [];
+          board.prevPos = { x: null, y: null };
+        });
+
+        core.rootScene.addChild(boardNumberImg);
+      }
+
+      board.updateColors();
+      core.rootScene.removeChild(this);
       delete this;
     } else {
       this.x = this.baseX;
@@ -136,12 +180,8 @@ var MacroBlock = Class.create(Group, {
   },
 
   rotate: function() {
-    this.deleteNumberImgs();
-
     this.rotation -= 90;
     this.direction = (this.direction + 1) % 4;
-
-    this.paintNumberImgs();
   },
 
   paintNumberImgs: function() {
@@ -164,13 +204,6 @@ var MacroBlock = Class.create(Group, {
       }.bind(this));
 
       this.addChild(numberImg);
-    }
-  },
-
-  deleteNumberImgs: function() {
-    for (var i = 0; i < 4; i++) {
-      this.lastChild.x += 100;
-      this.removeChild(this.lastChild);
     }
   },
 
@@ -199,10 +232,19 @@ var MacroBlock = Class.create(Group, {
     }
 
     return checkSum === 0;
-  },
-
-  moveToNearest: function(x, y) {
-    this.x = x * 30 + 380;
-    this.y = y * 30 + 260;
   }
 });
+
+function calcPosFromPx(pxX, pxY) {
+  var x = Math.floor((pxX - 380) / 30);
+  var y = Math.floor((pxY - 260) / 30);
+  return { x: x, y: y };
+}
+
+function makeChain() {
+  var core = Core.instance;
+  var infoLabel = new Label("chain");
+  infoLabel.x = 10;
+  infoLabel.y = 10;
+  core.rootScene.addChild(infoLabel);
+}
