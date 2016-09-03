@@ -75,6 +75,62 @@ window.onload = function() {
     core.rootScene.addChild(holder1);
     core.rootScene.addChild(holder2);
 
+    var scoreboard1 = new Sprite(262, 332);
+    scoreboard1.image = core.assets["img/scoreboard1.png"];
+    scoreboard1.x = 260;
+    scoreboard1.y = -80;
+    scoreboard1.scaleX= 1/2.2;
+    scoreboard1.scaleY= 1/2.2;
+    core.rootScene.addChild(scoreboard1);
+
+    var scoreboard2 = new Sprite(262, 332);
+    scoreboard2.image = core.assets["img/scoreboard2.png"];
+    scoreboard2.x = 475;
+    scoreboard2.y = -80;
+    scoreboard2.scaleX= 1/2.2;
+    scoreboard2.scaleY= 1/2.2;
+    core.rootScene.addChild(scoreboard2);
+
+    var back1 = new Sprite(262, 332);
+    back1.image = core.assets["img/back1.png"];
+    back1.x = 60;
+    back1.y = -80;
+    back1.scaleX= 1/2.2;
+    back1.scaleY= 1/2.2;
+    core.rootScene.addChild(back1);
+
+    var back2 = new Sprite(262, 332);
+    back2.image = core.assets["img/back2.png"];
+    back2.x = 685;
+    back2.y = -80;
+    back2.scaleX= 1/2.2;
+    back2.scaleY= 1/2.2;
+    core.rootScene.addChild(back2);
+
+    var change = new Sprite(327, 165);
+    change.image = core.assets["img/change.png"];
+    change.x = 335;
+    change.y = 90;
+    change.scaleX= 1/3;
+    change.scaleY= 1/3;
+    core.rootScene.addChild(change);
+
+    var chara1 = new Sprite(375, 239);
+    chara1.image = core.assets["img/chara1.png"];
+    chara1.x = 0;
+    chara1.y = -40;
+    chara1.scaleX= 1/3;
+    chara1.scaleY= 1/3;
+    core.rootScene.addChild(chara1);
+
+    var chara2 = new Sprite(158, 194);
+    chara2.image = core.assets["img/chara2.png"];
+    chara2.x = 740;
+    chara2.y = -20;
+    chara2.scaleX= 1/2;
+    chara2.scaleY= 1/2;
+    core.rootScene.addChild(chara2);
+
     putBlocks();
   });
 
@@ -116,6 +172,13 @@ function preloadAssets() {
   core.preload("img/blocks.png");
   core.preload("img/holder.png");
   core.preload("img/numbers.png");
+  core.preload("img/scoreboard1.png");
+  core.preload("img/scoreboard2.png");
+  core.preload("img/back1.png");
+  core.preload("img/back2.png");
+  core.preload("img/change.png");
+  core.preload("img/chara1.png");
+  core.preload("img/chara2.png");
 }
 
 function putBlocks() {
