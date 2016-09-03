@@ -13,13 +13,30 @@ var Board = Class.create(enchant.Map, {
     this.y = 260;
     this.image = core.assets["img/blocks.png"];
 
-    // fill with 8x8 array
-    this.colors = Array(8).fill(Array(8).fill(7)); // to be used by MacroBlock
+    this.colors = [
+      [7, 7, 7, 7, 7, 7, 7, 7],
+      [7, 7, 7, 7, 7, 7, 7, 7],
+      [7, 7, 7, 7, 7, 7, 7, 7],
+      [7, 7, 7, 7, 7, 7, 7, 7],
+      [7, 7, 7, 7, 7, 7, 7, 7],
+      [7, 7, 7, 7, 7, 7, 7, 7],
+      [7, 7, 7, 7, 7, 7, 7, 7],
+      [7, 7, 7, 7, 7, 7, 7, 7]
+    ];
     this.loadData(this.colors);
 
     // store numbers which each block has
     // `0` indicates the square is empty
-    this.nums = Array(8).fill(Array(8).fill(0));
+    this.nums = [
+      [0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0]
+    ];
   },
 
   updateColors: function() {
@@ -58,8 +75,7 @@ window.onload = function() {
     core.rootScene.addChild(holder1);
     core.rootScene.addChild(holder2);
 
-    var mb = new MacroBlock(0, 380, 260);
-    core.rootScene.addChild(mb);
+    putBlocks();
   });
 
   core.start();
@@ -99,4 +115,26 @@ function preloadAssets() {
 
   core.preload("img/blocks.png");
   core.preload("img/holder.png");
+  core.preload("img/numbers.png");
+}
+
+function putBlocks() {
+  var core = Core.instance;
+
+  for (var i = 0; i < 2; i++) {
+    var mb = new MacroBlock(0, 70+620*i, 220);
+    core.rootScene.addChild(mb);
+    var mb = new MacroBlock(1, 130+620*i, 220);
+    core.rootScene.addChild(mb);
+    var mb = new MacroBlock(2, 70+620*i, 400);
+    core.rootScene.addChild(mb);
+    var mb = new MacroBlock(3, 220+620*i, 370);
+    core.rootScene.addChild(mb);
+    var mb = new MacroBlock(4, 70+620*i, 460);
+    core.rootScene.addChild(mb);
+    var mb = new MacroBlock(5, 220+620*i, 490);
+    core.rootScene.addChild(mb);
+    var mb = new MacroBlock(6, 220+620*i, 250);
+    core.rootScene.addChild(mb);
+  }
 }

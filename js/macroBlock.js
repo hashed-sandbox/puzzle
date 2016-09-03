@@ -13,7 +13,7 @@ blockCords[0] = [
 ];
 
 blockCords[1] = [
-  [[ 0,  0], [ 0,  1], [ 1,  1], [ 0,  1]],
+  [[ 0,  0], [ 0,  1], [ 1,  1], [ 1,  0]],
   [[ 0, -1], [ 0, -2], [ 1, -2], [ 1, -1]],
   [[-1, -1], [-2, -1], [-2, -2], [-1, -2]],
   [[-1,  0], [-1,  1], [-2,  1], [-2,  0]]
@@ -63,6 +63,7 @@ var MacroBlock = Class.create(Group, {
 
     this.colorID = colorID;
     this.direction = 0; // initial value
+    this.numbers = [2, 1, 3, 4];
 
     var blockSize = 30;
 
@@ -74,16 +75,10 @@ var MacroBlock = Class.create(Group, {
       block.x = blockCords[colorID][0][i][0] * blockSize;
       block.y = blockCords[colorID][0][i][1] * blockSize;
 
-      block.addEventListener("mousedown", function(ev) {
-        this.handleClick(ev);
-      }.bind(this));
-
-      block.addEventListener("mouseup", function(ev) {
-        this.handleRelease(ev);
-      }.bind(this));
-
       this.addChild(block);
     }
+
+    this.paintNumberImgs();
 
     this.addEventListener("touchmove", this.handleDrag);
 
@@ -116,15 +111,67 @@ var MacroBlock = Class.create(Group, {
 
   handleRelease: function(ev) {
     var nearestPos = this.getNearestPos();
-    /*if (this.canBePlacedAt(nearestPos.x, nearestPos.y)) {
+
+    if (this.canBePlacedAt(nearestPos.x, nearestPos.y)) {
+      this.moveToNearest(nearestPos.x, nearestPos.y);
+
+      var board = Core.instance.board;
+      var order = blockCords[this.colorID][this.direction];
+
+      for (var i = 0; i < 4; i++) {
+        var relativeX = order[i][0];
+        var relativeY = order[i][1];
+        board.colors[nearestPos.y + relativeY][nearestPos.x + relativeX]
+          = this.colorID;
+        board.nums[nearestPos.y + relativeY][nearestPos.x + relativeX]
+          = this.numbers[i];
+      }
+      board.updateColors();
+
       delete this;
-    }*/
-    this.moveToNearest(nearestPos.x, nearestPos.y);
+    } else {
+      this.x = this.baseX;
+      this.y = this.baseY;
+    }
   },
 
   rotate: function() {
-    this.rotation += 90;
+    this.deleteNumberImgs();
+
+    this.rotation -= 90;
     this.direction = (this.direction + 1) % 4;
+
+    this.paintNumberImgs();
+  },
+
+  paintNumberImgs: function() {
+    var core = Core.instance;
+    for (var i = 0; i < 4; i++) {
+      var numberImg = new Sprite(30 , 30);
+      numberImg.image = core.assets["img/numbers.png"];
+      numberImg.frame = this.numbers[i] -1;
+
+      var blockSize = 30;
+      numberImg.x = blockCords[this.colorID][this.direction][i][0] * blockSize;
+      numberImg.y = blockCords[this.colorID][this.direction][i][1] * blockSize;
+
+      numberImg.addEventListener("mousedown", function(ev) {
+        this.handleClick(ev);
+      }.bind(this));
+
+      numberImg.addEventListener("mouseup", function(ev) {
+        this.handleRelease(ev);
+      }.bind(this));
+
+      this.addChild(numberImg);
+    }
+  },
+
+  deleteNumberImgs: function() {
+    for (var i = 0; i < 4; i++) {
+      this.lastChild.x += 100;
+      this.removeChild(this.lastChild);
+    }
   },
 
   getNearestPos: function() {
@@ -143,8 +190,8 @@ var MacroBlock = Class.create(Group, {
       var relativeX = order[i][0];
       var relativeY = order[i][1];
 
-      if (relativeX < 0 || 8 <= relativeX ||
-          relativeY < 0 || 8 <= relativeY) {
+      if (x + relativeX < 0 || 8 <= x + relativeX ||
+          y + relativeY < 0 || 8 <= y + relativeY) {
         return false;
       }
 
@@ -155,12 +202,7 @@ var MacroBlock = Class.create(Group, {
   },
 
   moveToNearest: function(x, y) {
-    if (0 <= x && x < 8 && 0 <= y && y < 8) {
-      this.x = x * 30 + 380;
-      this.y = y * 30 + 260;
-    } else {
-      this.x = this.baseX;
-      this.y = this.baseY;
-    }
+    this.x = x * 30 + 380;
+    this.y = y * 30 + 260;
   }
 });
