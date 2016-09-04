@@ -2,16 +2,11 @@
 
 enchant();
 
-var Board = Class.create(enchant.Map, {
+var Board = Class.create(Group, {
   initialize: function() {
     var core = Core.instance;
 
-    var squareSize = 30;
-    enchant.Map.call(this, squareSize, squareSize);
-
-    this.x = 380;
-    this.y = 260;
-    this.image = core.assets["img/blocks.png"];
+    Group.call(this);
 
     this.colors = [
       [7, 7, 7, 7, 7, 7, 7, 7],
@@ -23,7 +18,6 @@ var Board = Class.create(enchant.Map, {
       [7, 7, 7, 7, 7, 7, 7, 7],
       [7, 7, 7, 7, 7, 7, 7, 7]
     ];
-    this.loadData(this.colors);
 
     // store numbers which each block has
     // `0` indicates the square is empty
@@ -37,10 +31,19 @@ var Board = Class.create(enchant.Map, {
       [0, 0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0, 0]
     ];
+
+    var squareSize = 30;
+    var map = new Map(squareSize, squareSize);
+    map.image = core.assets["img/blocks.png"];
+    map.loadData(this.colors);
+
+    this.addChild(map);
+
+    this.moveTo(380, 260);
   },
 
   updateColors: function() {
-    this.loadData(this.colors);
+    this.firstChild.loadData(this.colors);
   }
 });
 

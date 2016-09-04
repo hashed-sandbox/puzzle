@@ -133,8 +133,8 @@ var MacroBlock = Class.create(Group, {
 
       var boardNumberImg = new Sprite(30, 30);
       boardNumberImg.image = core.assets["img/numbers.png"];
-      boardNumberImg.x = (nearestPos.x + relativeX) * 30 + 380;
-      boardNumberImg.y = (nearestPos.y + relativeY) * 30 + 260;
+      boardNumberImg.x = (nearestPos.x + relativeX) * 30;
+      boardNumberImg.y = (nearestPos.y + relativeY) * 30;
       boardNumberImg.frame = this.numbers[i] -1;
 
       board.array = [];
@@ -171,7 +171,7 @@ var MacroBlock = Class.create(Group, {
         board.prevPos = { x: null, y: null };
       });
 
-      core.rootScene.addChild(boardNumberImg);
+      board.addChild(boardNumberImg);
     }
 
     board.updateColors();
