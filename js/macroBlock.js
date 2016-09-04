@@ -63,7 +63,7 @@ var MacroBlock = Class.create(Group, {
 
     this.colorID = colorID;
     this.direction = 0; // initial value
-    this.numbers = [2, 1, 3, 4];
+    this.numbers = getPermutation();
 
     var blockSize = 30;
 
@@ -234,6 +234,19 @@ var MacroBlock = Class.create(Group, {
     return checkSum === 0;
   }
 });
+
+function getPermutation() {
+  var src = [1, 2, 3, 4];
+  var dst = [];
+
+  for (var i = 0; i < 4; i++) {
+    var idx = Math.floor(Math.random() * (4 - i));
+    var val = src.splice(idx, 1)[0];
+    dst.push(val);
+  }
+
+  return dst;
+}
 
 function calcPosFromPx(pxX, pxY) {
   var x = Math.floor((pxX - 380) / 30);
