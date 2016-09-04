@@ -111,72 +111,72 @@ var MacroBlock = Class.create(Group, {
   },
 
   handleRelease: function(ev) {
+    var nearestPos = this.getNearestPos();
+    if (!this.canBePlacedAt(nearestPos.x, nearestPos.y)) {
+      this.x = this.baseX;
+      this.y = this.baseY;
+      return;
+    }
+
     var core = Core.instance;
     var board = core.board;
 
-    var nearestPos = this.getNearestPos();
+    var order = blockCords[this.colorID][this.direction];
 
-    if (this.canBePlacedAt(nearestPos.x, nearestPos.y)) {
-      var order = blockCords[this.colorID][this.direction];
+    for (var i = 0; i < 4; i++) {
+      var relativeX = order[i][0];
+      var relativeY = order[i][1];
+      board.colors[nearestPos.y + relativeY][nearestPos.x + relativeX]
+        = this.colorID;
+      board.nums[nearestPos.y + relativeY][nearestPos.x + relativeX]
+        = this.numbers[i];
 
-      for (var i = 0; i < 4; i++) {
-        var relativeX = order[i][0];
-        var relativeY = order[i][1];
-        board.colors[nearestPos.y + relativeY][nearestPos.x + relativeX]
-          = this.colorID;
-        board.nums[nearestPos.y + relativeY][nearestPos.x + relativeX]
-          = this.numbers[i];
+      var boardNumberImg = new Sprite(30, 30);
+      boardNumberImg.image = core.assets["img/numbers.png"];
+      boardNumberImg.x = (nearestPos.x + relativeX) * 30 + 380;
+      boardNumberImg.y = (nearestPos.y + relativeY) * 30 + 260;
+      boardNumberImg.frame = this.numbers[i] -1;
 
-        var boardNumberImg = new Sprite(30, 30);
-        boardNumberImg.image = core.assets["img/numbers.png"];
-        boardNumberImg.x = (nearestPos.x + relativeX) * 30 + 380;
-        boardNumberImg.y = (nearestPos.y + relativeY) * 30 + 260;
-        boardNumberImg.frame = this.numbers[i] -1;
+      board.array = [];
+      board.prevPos = { x: null, y: null }; // before dragging
+
+      boardNumberImg.addEventListener("touchmove", function(ev) {
+        var currentPos = calcPosFromPx(ev.x, ev.y);
+
+        if (board.prevPos.x === null && board.prevPos.y === null &&
+            board.nums[currentPos.y][currentPos.x] === 1) {
+          board.array.push(1);
+          board.prevPos = currentPos;
+          return;
+        }
+
+        if ((currentPos.x === board.prevPos.x + 1 && currentPos.y === board.prevPos.y) ||
+            (currentPos.x === board.prevPos.x - 1 && currentPos.y === board.prevPos.y) ||
+            (currentPos.x === board.prevPos.x && currentPos.y === board.prevPos.y + 1) ||
+            (currentPos.x === board.prevPos.x && currentPos.y === board.prevPos.y - 1)) {
+          if (board.array.length < 4) {
+            board.array.push(board.nums[currentPos.y][currentPos.x]);
+            board.prevPos = currentPos;
+          }
+        }
+      });
+
+      boardNumberImg.addEventListener("touchend", function(ev) {
+        if (board.array[0] === 1 && board.array[1] === 2 &&
+            board.array[2] === 3 && board.array[3] === 4) {
+          makeChain();
+        }
 
         board.array = [];
-        board.prevPos = { x: null, y: null }; // before dragging
+        board.prevPos = { x: null, y: null };
+      });
 
-        boardNumberImg.addEventListener("touchmove", function(ev) {
-          var currentPos = calcPosFromPx(ev.x, ev.y);
-
-          if (board.prevPos.x === null && board.prevPos.y === null &&
-              board.nums[currentPos.y][currentPos.x] === 1) {
-            board.array.push(1);
-            board.prevPos = currentPos;
-            return;
-          }
-
-          if ((currentPos.x === board.prevPos.x + 1 && currentPos.y === board.prevPos.y) ||
-              (currentPos.x === board.prevPos.x - 1 && currentPos.y === board.prevPos.y) ||
-              (currentPos.x === board.prevPos.x && currentPos.y === board.prevPos.y + 1) ||
-              (currentPos.x === board.prevPos.x && currentPos.y === board.prevPos.y - 1)) {
-            if (board.array.length < 4) {
-              board.array.push(board.nums[currentPos.y][currentPos.x]);
-              board.prevPos = currentPos;
-            }
-          }
-        });
-
-        boardNumberImg.addEventListener("touchend", function(ev) {
-          if (board.array[0] === 1 && board.array[1] === 2 &&
-              board.array[2] === 3 && board.array[3] === 4) {
-            makeChain();
-          }
-
-          board.array = [];
-          board.prevPos = { x: null, y: null };
-        });
-
-        core.rootScene.addChild(boardNumberImg);
-      }
-
-      board.updateColors();
-      core.rootScene.removeChild(this);
-      delete this;
-    } else {
-      this.x = this.baseX;
-      this.y = this.baseY;
+      core.rootScene.addChild(boardNumberImg);
     }
+
+    board.updateColors();
+    core.rootScene.removeChild(this);
+    delete this;
   },
 
   rotate: function() {
