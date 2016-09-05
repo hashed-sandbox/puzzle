@@ -32,6 +32,9 @@ var Board = Class.create(Group, {
       [0, 0, 0, 0, 0, 0, 0, 0]
     ];
 
+    this.numsMemory = [];
+    this.prevPos = { x: null, y: null };
+
     var squareSize = 30;
     var map = new Map(squareSize, squareSize);
     map.image = core.assets["img/blocks.png"];
@@ -44,6 +47,62 @@ var Board = Class.create(Group, {
 
   updateColors: function() {
     this.firstChild.loadData(this.colors);
+  },
+
+  paintMacroBlock: function(macroBlock, x, y) {
+    var core = Core.instance;
+    var order = blockCords[macroBlock.colorID][macroBlock.direction];
+
+    for (var i = 0; i < 4; i++) {
+      var relativeX = order[i][0];
+      var relativeY = order[i][1];
+
+      this.colors[y + relativeY][x + relativeX] = macroBlock.colorID;
+      this.nums[y + relativeY][x + relativeX] = macroBlock.numbers[i];
+
+      var numberImg = new Sprite(30, 30);
+      numberImg.x = (x + relativeX) * 30;
+      numberImg.y = (y + relativeY) * 30;
+      numberImg.image = core.assets["img/numbers.png"];
+      numberImg.frame = macroBlock.numbers[i] - 1;
+
+      numberImg.addEventListener("touchmove", function(ev) {
+        // this <- board
+        var currentPos = calcPosFromPx(ev.x, ev.y);
+
+        if (this.prevPos.x === null && this.prevPos.y === null &&
+            this.nums[currentPos.y][currentPos.x] === 1) {
+          this.numsMemory.push(1);
+          this.prevPos = currentPos;
+          return;
+        }
+
+        if ((currentPos.x === this.prevPos.x + 1 && currentPos.y === this.prevPos.y) ||
+            (currentPos.x === this.prevPos.x - 1 && currentPos.y === this.prevPos.y) ||
+            (currentPos.x === this.prevPos.x && currentPos.y === this.prevPos.y + 1) ||
+            (currentPos.x === this.prevPos.x && currentPos.y === this.prevPos.y - 1)) {
+          if (this.numsMemory.length < 4) {
+            this.numsMemory.push(this.nums[currentPos.y][currentPos.x]);
+            this.prevPos = currentPos;
+          }
+        }
+      }.bind(this));
+
+      numberImg.addEventListener("touchend", function(ev) {
+        // this <- board
+        if (this.numsMemory[0] === 1 && this.numsMemory[1] === 2 &&
+            this.numsMemory[2] === 3 && this.numsMemory[3] === 4) {
+          makeChain();
+        }
+
+        this.numMemory = [];
+        this.prevPox = { x: null, y: null };
+      }.bind(this));
+
+      this.addChild(numberImg);
+    }
+
+    this.updateColors();
   }
 });
 
@@ -203,4 +262,18 @@ function putBlocks() {
     var mb = new MacroBlock(6, 220 + 620 * i, 250);
     core.rootScene.addChild(mb);
   }
+}
+
+function calcPosFromPx(pxX, pxY) {
+  var x = Math.floor((pxX - 380) / 30);
+  var y = Math.floor((pxY - 260) / 30);
+  return { x: x, y: y };
+}
+
+function makeChain() {
+  var core = Core.instance;
+  var infoLabel = new Label("chain");
+  infoLabel.x = 10;
+  infoLabel.y = 10;
+  core.rootScene.addChild(infoLabel);
 }
