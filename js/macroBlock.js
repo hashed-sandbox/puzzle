@@ -146,6 +146,7 @@ var MacroBlock = Class.create(Group, {
 
       numberImg.addEventListener("mouseup", function(ev) {
         this.handleRelease(ev);
+        moveBlock();
       }.bind(this));
 
       this.addChild(numberImg);
@@ -191,4 +192,11 @@ function getPermutation() {
   }
 
   return dst;
+}
+
+function moveBlock() {
+  var core = Core.instance;
+  core.se = Sound.load("sound/put.mp3");
+  core.se.volume = 0.5;
+  core.se.play();
 }

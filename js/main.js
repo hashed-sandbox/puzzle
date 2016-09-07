@@ -32,7 +32,19 @@ var Board = Class.create(Group, {
       [0, 0, 0, 0, 0, 0, 0, 0]
     ];
 
-    this.numsMemory = [];
+    // store number-images drawn on the board
+    this.numberImgs = [
+      [null, null, null, null, null, null, null, null],
+      [null, null, null, null, null, null, null, null],
+      [null, null, null, null, null, null, null, null],
+      [null, null, null, null, null, null, null, null],
+      [null, null, null, null, null, null, null, null],
+      [null, null, null, null, null, null, null, null],
+      [null, null, null, null, null, null, null, null],
+      [null, null, null, null, null, null, null, null]
+    ];
+
+    this.tracedItems = [];
     this.prevPos = { x: null, y: null };
 
     var squareSize = 30;
@@ -42,11 +54,20 @@ var Board = Class.create(Group, {
 
     this.addChild(map);
 
+    this.addEventListener("enterframe", function(ev) {
+      // operations invoked at the rate of 60 fps
+      this.updateColors();
+    });
+
     this.moveTo(380, 260);
   },
 
   updateColors: function() {
     this.firstChild.loadData(this.colors);
+  },
+
+  bePossible: function() {
+    //
   },
 
   paintMacroBlock: function(macroBlock, x, y) {
@@ -72,7 +93,11 @@ var Board = Class.create(Group, {
 
         if (this.prevPos.x === null && this.prevPos.y === null &&
             this.nums[currentPos.y][currentPos.x] === 1) {
-          this.numsMemory.push(1);
+          this.tracedItems.push({
+            x: currentPos.x,
+            y: currentPos.y,
+            num: 1
+          });
           this.prevPos = currentPos;
           return;
         }
@@ -81,8 +106,12 @@ var Board = Class.create(Group, {
             (currentPos.x === this.prevPos.x - 1 && currentPos.y === this.prevPos.y) ||
             (currentPos.x === this.prevPos.x && currentPos.y === this.prevPos.y + 1) ||
             (currentPos.x === this.prevPos.x && currentPos.y === this.prevPos.y - 1)) {
-          if (this.numsMemory.length < 4) {
-            this.numsMemory.push(this.nums[currentPos.y][currentPos.x]);
+          if (this.tracedItems.length < 4) {
+            this.tracedItems.push({
+              x: currentPos.x,
+              y: currentPos.y,
+              num: this.nums[currentPos.y][currentPos.x]
+            });
             this.prevPos = currentPos;
           }
         }
@@ -90,19 +119,37 @@ var Board = Class.create(Group, {
 
       numberImg.addEventListener("touchend", function(ev) {
         // this <- board
-        if (this.numsMemory[0] === 1 && this.numsMemory[1] === 2 &&
-            this.numsMemory[2] === 3 && this.numsMemory[3] === 4) {
+        if (this.tracedItems.length === 4 && // tracedItems[i] is not undefined
+            this.tracedItems[0].num === 1 && this.tracedItems[1].num === 2 &&
+            this.tracedItems[2].num === 3 && this.tracedItems[3].num === 4) {
           makeChain();
+
+          for (var i = 0; i < 4; i++) {
+            var x = this.tracedItems[i].x;
+            var y = this.tracedItems[i].y;
+
+            this.colors[y][x] = 7;
+            this.nums[y][x] = 0;
+
+            this.removeChild(this.numberImgs[y][x]);
+            delete this.numberImgs[y][x];
+            this.numberImgs[y][x] = null;
+          }
         }
 
-        this.numMemory = [];
+        this.tracedItems = [];
         this.prevPox = { x: null, y: null };
       }.bind(this));
 
       this.addChild(numberImg);
-    }
+      this.numberImgs[y + relativeY][x + relativeX] = numberImg;
 
-    this.updateColors();
+      if (core.activePlayer === 1) {
+        core.rootScene.addChild(core.covers[0]);
+      } else {
+        core.rootScene.addChild(core.covers[1]);
+      }
+    }
   }
 });
 
@@ -120,14 +167,39 @@ var Holder = Class.create(Sprite, {
   }
 });
 
+var Cover = Class.create(Sprite, {
+  initialize: function(x, y) {
+    var core = Core.instance;
+
+    Sprite.call(this, 300, 400);
+
+    this.x = x;
+    this.y = y;
+
+    this.image = core.assets["img/cover.png"];
+    this.frame = 0;
+  }
+});
+
 window.onload = function() {
   var core = new Core(1000, 600);
   core.fps = 60;
+  core.covers = []; // hold gray covers;
+  core.activePlayer = 1;
 
   initMouseEvents();
   preloadAssets();
+  playBGM();
 
   core.addEventListener("load", function() {
+    var background = new Sprite(960, 648);
+    background.image = core.assets["img/background.png"];
+    background.x = 0;
+    background.y = 0;
+    background.scaleX = 1;
+    background.scaleY = 1;
+    core.rootScene.addChild(background);
+
     var board = new Board();
     core.rootScene.addChild(board);
     core.board = board; // to be used by MacroBlock
@@ -136,6 +208,37 @@ window.onload = function() {
     var holder2 = new Holder(660, 160);
     core.rootScene.addChild(holder1);
     core.rootScene.addChild(holder2);
+
+    putBlocks();
+
+    var cover1 = new Cover( 40, 160);
+    var cover2 = new Cover(660, 160);
+    core.covers = [cover1, cover2];
+    core.rootScene.addChild(core.covers[1]); // hide 2P
+
+    var change = new Sprite(327, 165);
+    change.image = core.assets["img/change.png"];
+    change.x = 335;
+    change.y = 90;
+    change.scaleX= 1/3;
+    change.scaleY= 1/3;
+    core.rootScene.addChild(change);
+
+    change.addEventListener("touchend", function() {
+      if (core.activePlayer === 1) {
+        core.rootScene.removeChild(core.covers[1]);
+        core.activePlayer = 2;
+        /* if (!core.board.bePossible()) {
+          // 切り替え処理
+        }*/
+      } else {
+        core.rootScene.removeChild(core.covers[0]);
+        core.activePlayer = 1;
+        /* if (!core.board.bePossible()) {
+          // 切り替え処理
+        }*/
+      }
+    })
 
     var scoreboard1 = new Sprite(262, 332);
     scoreboard1.image = core.assets["img/scoreboard1.png"];
@@ -153,6 +256,8 @@ window.onload = function() {
     scoreboard2.scaleY= 1/2.2;
     core.rootScene.addChild(scoreboard2);
 
+    getScore();
+
     var back1 = new Sprite(262, 332);
     back1.image = core.assets["img/back1.png"];
     back1.x = 60;
@@ -169,14 +274,6 @@ window.onload = function() {
     back2.scaleY= 1/2.2;
     core.rootScene.addChild(back2);
 
-    var change = new Sprite(327, 165);
-    change.image = core.assets["img/change.png"];
-    change.x = 335;
-    change.y = 90;
-    change.scaleX= 1/3;
-    change.scaleY= 1/3;
-    core.rootScene.addChild(change);
-
     var chara1 = new Sprite(375, 239);
     chara1.image = core.assets["img/chara1.png"];
     chara1.x = 0;
@@ -192,8 +289,6 @@ window.onload = function() {
     chara2.scaleX= 1/2;
     chara2.scaleY= 1/2;
     core.rootScene.addChild(chara2);
-
-    putBlocks();
   });
 
   core.start();
@@ -233,6 +328,7 @@ function preloadAssets() {
 
   core.preload("img/blocks.png");
   core.preload("img/holder.png");
+  core.preload("img/cover.png");
   core.preload("img/numbers.png");
   core.preload("img/scoreboard1.png");
   core.preload("img/scoreboard2.png");
@@ -241,6 +337,21 @@ function preloadAssets() {
   core.preload("img/change.png");
   core.preload("img/chara1.png");
   core.preload("img/chara2.png");
+  core.preload("img/background.png");
+
+  core.preload("sound/BGM1.mp3");
+  core.preload("sound/BGM2.mp3");
+  core.preload("sound/BGM3.mp3");
+  core.preload("sound/BGM4.mp3");
+  core.preload("sound/put.mp3");
+}
+
+function playBGM() {
+  var core = Core.instance;
+  var music = Math.floor(Math.random() * 4) * 1;
+  core.bgm = Sound.load("sound/BGM" + music + ".mp3");
+  core.bgm.volume = 0.1;
+  core.bgm.play();
 }
 
 function putBlocks() {
@@ -272,8 +383,38 @@ function calcPosFromPx(pxX, pxY) {
 
 function makeChain() {
   var core = Core.instance;
-  var infoLabel = new Label("chain");
-  infoLabel.x = 10;
-  infoLabel.y = 10;
-  core.rootScene.addChild(infoLabel);
+  var board = core.board;
+
+  for (var i = 0; i < 4; i++) {
+    // delete a macroblock
+    var currentX = board.tracedItems[i].x;
+    var currentY = board.tracedItems[i].y;
+
+    board.colors[currentY][currentX] = 7;
+    board.nums[currentY][currentX] = 0;
+
+    var img = board.numberImgs[currentY][currentX];
+    board.removeChild(img);
+    board.numberImgs[currentY][currentX] = null;
+  }
+
+  core.se = Sound.load("sound/put.mp3");
+  core.se.volume = 0.5;
+  core.se.play();
+}
+
+function getScore() {
+  var core = Core.instance;
+
+  var infoLabel1 = new Label('100');
+  infoLabel1.x = 355;
+  infoLabel1.y = 70;
+  infoLabel1.font = '40px sens-serif';
+  core.rootScene.addChild(infoLabel1);
+
+  var infoLabel2 = new Label('100');
+  infoLabel2.x = 570;
+  infoLabel2.y = 70;
+  infoLabel2.font = '40px sens-serif';
+  core.rootScene.addChild(infoLabel2);
 }
