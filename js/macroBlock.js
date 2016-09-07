@@ -106,6 +106,14 @@ var MacroBlock = Class.create(Group, {
   handleDrag: function(ev) {
     if (this.isRightPressed) { return; }
 
+    var core = Core.instance;
+    if ((core.activePlayer === 1 && ev.x >= 660) ||
+        (core.activePlayer === 2 && ev.x <= 340)) {
+      this.x = this.baseX;
+      this.y = this.baseY;
+      return;
+    }
+
     this.moveTo(this.baseX + (ev.x - this.startX),
                 this.baseY + (ev.y - this.startY));
   },
@@ -121,7 +129,9 @@ var MacroBlock = Class.create(Group, {
     var core = Core.instance;
     core.board.paintMacroBlock(this, nearestPos.x, nearestPos.y);
     core.rootScene.removeChild(this);
-    delete this;
+    core.playerBlocks[core.activePlayer - 1][this.colorID] = null;
+
+    addScore(1);
   },
 
   rotate: function() {

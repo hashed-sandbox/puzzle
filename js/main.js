@@ -149,7 +149,7 @@ var Board = Class.create(Group, {
   }
 });
 
-var Holder = Class.create(Sprite, {
+var Holder1 = Class.create(Sprite, {
   initialize: function(x, y) {
     var core = Core.instance;
 
@@ -158,7 +158,21 @@ var Holder = Class.create(Sprite, {
     this.x = x;
     this.y = y;
 
-    this.image = core.assets["img/holder.png"];
+    this.image = core.assets["img/holder1.png"];
+    this.frame = 0;
+  }
+});
+
+var Holder2 = Class.create(Sprite, {
+  initialize: function(x, y) {
+    var core = Core.instance;
+
+    Sprite.call(this, 300, 400);
+
+    this.x = x;
+    this.y = y;
+
+    this.image = core.assets["img/holder2.png"];
     this.frame = 0;
   }
 });
@@ -180,8 +194,14 @@ var Cover = Class.create(Sprite, {
 window.onload = function() {
   var core = new Core(1000, 600);
   core.fps = 60;
+
   core.covers = []; // hold gray covers;
   core.activePlayer = 1;
+  core.scoreTexts = [];
+  core.playerBlocks = [ // 2x7 2D array
+    [],
+    [],
+  ];
 
   initMouseEvents();
   preloadAssets();
@@ -203,65 +223,20 @@ window.onload = function() {
     core.rootScene.addChild(board);
     core.board = board; // to be used by MacroBlock
 
-    var holder1 = new Holder( 40, 160);
-    var holder2 = new Holder(660, 160);
+    var holder1 = new Holder1( 40, 160);
+    var holder2 = new Holder2(660, 160);
     core.rootScene.addChild(holder1);
     core.rootScene.addChild(holder2);
-
-    core.playerBlocks = [
-      [null, null, null, null, null, null, null],
-      [null, null, null, null, null, null, null]
-    ];
 
     putBlocks();
 
     var cover1 = new Cover( 40, 160);
+    core.covers.push(cover1);
     var cover2 = new Cover(660, 160);
-    core.covers = [cover1, cover2];
+    core.covers.push(cover2);
     core.rootScene.addChild(core.covers[1]); // hide 2P
 
-    var change = new Sprite(327, 165);
-    change.image = core.assets["img/change.png"];
-    change.x = 335;
-    change.y = 90;
-    change.scaleX= 1/3;
-    change.scaleY= 1/3;
-    core.rootScene.addChild(change);
-
-    change.addEventListener("touchend", function() {
-      if (core.activePlayer === 1) {
-        core.rootScene.removeChild(core.covers[1]);
-        core.activePlayer = 2;
-        /* if (!core.board.bePossible()) {
-          // 切り替え処理
-        }*/
-      } else {
-        core.rootScene.removeChild(core.covers[0]);
-        core.activePlayer = 1;
-        /* if (!core.board.bePossible()) {
-          // 切り替え処理
-        }*/
-      }
-    });
-
-    var scoreboard1 = new Sprite(237, 319);
-    scoreboard1.image = core.assets["img/scoreboard1.png"];
-    scoreboard1.x = 275;
-    scoreboard1.y = -80;
-    scoreboard1.scaleX= 1/2.2;
-    scoreboard1.scaleY= 1/2.2;
-    core.rootScene.addChild(scoreboard1);
-
-    var scoreboard2 = new Sprite(236, 319);
-    scoreboard2.image = core.assets["img/scoreboard2.png"];
-    scoreboard2.x = 490;
-    scoreboard2.y = -80;
-    scoreboard2.scaleX= 1/2.2;
-    scoreboard2.scaleY= 1/2.2;
-    core.rootScene.addChild(scoreboard2);
-
-    getScore();
-
+    /*** Player 1 ***/
     var back1 = new Sprite(237, 319);
     back1.image = core.assets["img/back1.png"];
     back1.x = 72;
@@ -270,6 +245,23 @@ window.onload = function() {
     back1.scaleY= 1/2.0;
     core.rootScene.addChild(back1);
 
+    var turn1 = new Sprite(237, 319);
+    turn1.image = core.assets["img/turn1.png"];
+    turn1.x = 72;
+    turn1.y = -80;
+    turn1.scaleX = 1/1.9;
+    turn1.scaleY = 1/2.0;
+    core.rootScene.addChild(turn1);
+
+    var chara1 = new Sprite(375, 239);
+    chara1.image = core.assets["img/chara1.png"];
+    chara1.x = 0;
+    chara1.y = -40;
+    chara1.scaleX = 1/3;
+    chara1.scaleY = 1/3;
+    core.rootScene.addChild(chara1);
+
+    /*** Player 2 ***/
     var back2 = new Sprite(236, 318);
     back2.image = core.assets["img/back2.png"];
     back2.x = 695;
@@ -278,21 +270,74 @@ window.onload = function() {
     back2.scaleY= 1/2.0;
     core.rootScene.addChild(back2);
 
-    var chara1 = new Sprite(375, 239);
-    chara1.image = core.assets["img/chara1.png"];
-    chara1.x = 0;
-    chara1.y = -40;
-    chara1.scaleX= 1/3;
-    chara1.scaleY= 1/3;
-    core.rootScene.addChild(chara1);
+    var turn2 = new Sprite(236, 318);
+    turn2.image = core.assets["img/turn2.png"];
+    turn2.x = 695;
+    turn2.y = -80;
+    turn2.scaleX = 1/1.9;
+    turn2.scaleY = 1/2.0;
+    // don't addChild() at the first time
 
     var chara2 = new Sprite(158, 194);
     chara2.image = core.assets["img/chara2.png"];
     chara2.x = 740;
     chara2.y = -20;
-    chara2.scaleX= 1/2;
-    chara2.scaleY= 1/2;
+    chara2.scaleX = 1/2;
+    chara2.scaleY = 1/2;
     core.rootScene.addChild(chara2);
+
+    /*** Change Button ***/
+    var change = new Sprite(327, 165);
+    change.image = core.assets["img/change.png"];
+    change.x = 335;
+    change.y = 90;
+    change.scaleX = 1/3;
+    change.scaleY = 1/3;
+    core.rootScene.addChild(change);
+
+    change.addEventListener("touchend", function() {
+      if (core.activePlayer === 1) {
+        core.rootScene.removeChild(core.covers[1]);
+
+        core.rootScene.removeChild(turn1);
+        core.rootScene.insertBefore(turn2, chara2);
+
+        /* if (!core.board.bePossible()) {
+          // 切り替え処理
+        }*/
+
+        core.activePlayer = 2;
+      } else {
+        core.rootScene.removeChild(core.covers[0]);
+
+        core.rootScene.removeChild(turn2);
+        core.rootScene.insertBefore(turn1, chara1);
+
+        /* if (!core.board.bePossible()) {
+          // 切り替え処理
+        }*/
+
+        core.activePlayer = 1;
+      }
+    });
+
+    var scoreboard1 = new Sprite(237, 319);
+    scoreboard1.image = core.assets["img/scoreboard1.png"];
+    scoreboard1.x = 275;
+    scoreboard1.y = -80;
+    scoreboard1.scaleX = 1/2.2;
+    scoreboard1.scaleY = 1/2.2;
+    core.rootScene.addChild(scoreboard1);
+
+    var scoreboard2 = new Sprite(236, 319);
+    scoreboard2.image = core.assets["img/scoreboard2.png"];
+    scoreboard2.x = 490;
+    scoreboard2.y = -80;
+    scoreboard2.scaleX = 1/2.2;
+    scoreboard2.scaleY = 1/2.2;
+    core.rootScene.addChild(scoreboard2);
+
+    initScoreTexts();
   });
 
   core.start();
@@ -331,7 +376,8 @@ function preloadAssets() {
   var core = Core.instance;
 
   core.preload("img/blocks.png");
-  core.preload("img/holder.png");
+  core.preload("img/holder1.png");
+  core.preload("img/holder2.png");
   core.preload("img/cover.png");
   core.preload("img/numbers.png");
   core.preload("img/scoreboard1.png");
@@ -342,11 +388,14 @@ function preloadAssets() {
   core.preload("img/chara1.png");
   core.preload("img/chara2.png");
   core.preload("img/background.png");
+  core.preload("img/turn1.png");
+  core.preload("img/turn2.png");
 
   core.preload("sound/BGM1.mp3");
   core.preload("sound/BGM2.mp3");
   core.preload("sound/BGM3.mp3");
   core.preload("sound/put.mp3");
+  core.preload("sound/chain.wav");
 }
 
 function playBGM() {
@@ -363,26 +412,33 @@ function playBGM() {
 function putBlocks() {
   var core = Core.instance;
 
+  var mb;
   for (var i = 0; i < 2; i++) {
-    var mb = new MacroBlock(0,  70 + 620 * i, 220);
+    mb = new MacroBlock(0,  70 + 620 * i, 220);
     core.rootScene.addChild(mb);
     core.playerBlocks[i].push(mb);
-    var mb = new MacroBlock(1, 130 + 620 * i, 220);
+
+    mb = new MacroBlock(1, 130 + 620 * i, 220);
     core.rootScene.addChild(mb);
     core.playerBlocks[i].push(mb);
-    var mb = new MacroBlock(2,  70 + 620 * i, 400);
+
+    mb = new MacroBlock(2,  70 + 620 * i, 400);
     core.rootScene.addChild(mb);
     core.playerBlocks[i].push(mb);
-    var mb = new MacroBlock(3, 220 + 620 * i, 370);
+
+    mb = new MacroBlock(3, 220 + 620 * i, 370);
     core.rootScene.addChild(mb);
     core.playerBlocks[i].push(mb);
-    var mb = new MacroBlock(4,  70 + 620 * i, 460);
+
+    mb = new MacroBlock(4,  70 + 620 * i, 460);
     core.rootScene.addChild(mb);
     core.playerBlocks[i].push(mb);
-    var mb = new MacroBlock(5, 220 + 620 * i, 490);
+
+    mb = new MacroBlock(5, 220 + 620 * i, 490);
     core.rootScene.addChild(mb);
     core.playerBlocks[i].push(mb);
-    var mb = new MacroBlock(6, 220 + 620 * i, 250);
+
+    mb = new MacroBlock(6, 220 + 620 * i, 250);
     core.rootScene.addChild(mb);
     core.playerBlocks[i].push(mb);
   }
@@ -411,23 +467,57 @@ function makeChain() {
     board.numberImgs[currentY][currentX] = null;
   }
 
-  core.se = Sound.load("sound/put.mp3");
+  core.se = Sound.load("sound/chain.wav");
   core.se.volume = 0.5;
   core.se.play();
+
+  addScore(2);
 }
 
-function getScore() {
+function initScoreTexts() {
   var core = Core.instance;
 
-  var infoLabel1 = new Label('100');
+  var infoLabel1 = new Label("  0");
   infoLabel1.x = 355;
-  infoLabel1.y = 70;
-  infoLabel1.font = '40px sens-serif';
+  infoLabel1.y =  70;
+  infoLabel1.font = "40px sans-serif";
   core.rootScene.addChild(infoLabel1);
+  core.scoreTexts.push(infoLabel1);
 
-  var infoLabel2 = new Label('100');
+  var infoLabel2 = new Label("  0");
   infoLabel2.x = 570;
-  infoLabel2.y = 70;
-  infoLabel2.font = '40px sens-serif';
+  infoLabel2.y =  70;
+  infoLabel2.font = "40px sans-serif";
   core.rootScene.addChild(infoLabel2);
+  core.scoreTexts.push(infoLabel2);
+}
+
+function addScore(delta) {
+  var core = Core.instance;
+
+  core.rootScene.removeChild(core.scoreTexts[core.activePlayer - 1]);
+
+  var oldString = core.scoreTexts[core.activePlayer - 1].text;
+  var oldScore = Number(oldString);
+  var newScore = oldScore + delta;
+  var newString = String(newScore);
+
+  if (newString.length === 1) {
+    newString = "  " + newString;
+  } else if (newString.length === 2) {
+    newString = " " + newString;
+  }
+
+  var infoLabel = new Label(newString);
+  if (core.activePlayer === 1) {
+    infoLabel.x = 355;
+    infoLabel.y =  70;
+  } else {
+    infoLabel.x = 570;
+    infoLabel.y =  70;
+  }
+  infoLabel.font = "40px sans-serif";
+
+  core.rootScene.addChild(infoLabel);
+  core.scoreTexts[core.activePlayer - 1] = infoLabel;
 }
