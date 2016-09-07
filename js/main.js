@@ -66,10 +66,6 @@ var Board = Class.create(Group, {
     this.firstChild.loadData(this.colors);
   },
 
-  bePossible: function() {
-    //
-  },
-
   paintMacroBlock: function(macroBlock, x, y) {
     var core = Core.instance;
     var order = blockCords[macroBlock.colorID][macroBlock.direction];
@@ -138,7 +134,7 @@ var Board = Class.create(Group, {
         }
 
         this.tracedItems = [];
-        this.prevPox = { x: null, y: null };
+        this.prevPos = { x: null, y: null };
       }.bind(this));
 
       this.addChild(numberImg);
