@@ -188,12 +188,15 @@ window.onload = function() {
   playBGM();
 
   core.addEventListener("load", function() {
-    var background = new Sprite(960, 648);
+    var background = new Sprite(3000, 676);
     background.image = core.assets["img/background.png"];
-    background.x = 0;
-    background.y = 0;
-    background.scaleX = 1;
-    background.scaleY = 1;
+    background.moveTo(0, 0);
+    background.addEventListener("enterframe", function() {
+      background.x -= 4;
+      if (this.x <= -(3000 - 1000)) {
+        background.moveTo(0, 0);
+      }
+    });
     core.rootScene.addChild(background);
 
     var board = new Board();
@@ -204,6 +207,11 @@ window.onload = function() {
     var holder2 = new Holder(660, 160);
     core.rootScene.addChild(holder1);
     core.rootScene.addChild(holder2);
+
+    core.playerBlocks = [
+      [null, null, null, null, null, null, null],
+      [null, null, null, null, null, null, null]
+    ];
 
     putBlocks();
 
@@ -234,19 +242,19 @@ window.onload = function() {
           // 切り替え処理
         }*/
       }
-    })
+    });
 
-    var scoreboard1 = new Sprite(262, 332);
+    var scoreboard1 = new Sprite(237, 319);
     scoreboard1.image = core.assets["img/scoreboard1.png"];
-    scoreboard1.x = 260;
+    scoreboard1.x = 275;
     scoreboard1.y = -80;
     scoreboard1.scaleX= 1/2.2;
     scoreboard1.scaleY= 1/2.2;
     core.rootScene.addChild(scoreboard1);
 
-    var scoreboard2 = new Sprite(262, 332);
+    var scoreboard2 = new Sprite(236, 319);
     scoreboard2.image = core.assets["img/scoreboard2.png"];
-    scoreboard2.x = 475;
+    scoreboard2.x = 490;
     scoreboard2.y = -80;
     scoreboard2.scaleX= 1/2.2;
     scoreboard2.scaleY= 1/2.2;
@@ -254,20 +262,20 @@ window.onload = function() {
 
     getScore();
 
-    var back1 = new Sprite(262, 332);
+    var back1 = new Sprite(237, 319);
     back1.image = core.assets["img/back1.png"];
-    back1.x = 60;
+    back1.x = 72;
     back1.y = -80;
-    back1.scaleX= 1/2.2;
-    back1.scaleY= 1/2.2;
+    back1.scaleX= 1/1.9;
+    back1.scaleY= 1/2.0;
     core.rootScene.addChild(back1);
 
-    var back2 = new Sprite(262, 332);
+    var back2 = new Sprite(236, 318);
     back2.image = core.assets["img/back2.png"];
-    back2.x = 685;
+    back2.x = 695;
     back2.y = -80;
-    back2.scaleX= 1/2.2;
-    back2.scaleY= 1/2.2;
+    back2.scaleX= 1/1.9;
+    back2.scaleY= 1/2.0;
     core.rootScene.addChild(back2);
 
     var chara1 = new Sprite(375, 239);
@@ -338,16 +346,18 @@ function preloadAssets() {
   core.preload("sound/BGM1.mp3");
   core.preload("sound/BGM2.mp3");
   core.preload("sound/BGM3.mp3");
-  core.preload("sound/BGM4.mp3");
   core.preload("sound/put.mp3");
 }
 
 function playBGM() {
   var core = Core.instance;
-  var music = Math.floor(Math.random() * 4) * 1;
+  var music = Math.floor(Math.random() * 3) + 1;
   core.bgm = Sound.load("sound/BGM" + music + ".mp3");
   core.bgm.volume = 0.1;
-  core.bgm.play();
+
+  core.rootScene.addEventListener("enterframe", function() {
+    core.bgm.play();
+  });
 }
 
 function putBlocks() {
@@ -356,18 +366,25 @@ function putBlocks() {
   for (var i = 0; i < 2; i++) {
     var mb = new MacroBlock(0,  70 + 620 * i, 220);
     core.rootScene.addChild(mb);
+    core.playerBlocks[i].push(mb);
     var mb = new MacroBlock(1, 130 + 620 * i, 220);
     core.rootScene.addChild(mb);
+    core.playerBlocks[i].push(mb);
     var mb = new MacroBlock(2,  70 + 620 * i, 400);
     core.rootScene.addChild(mb);
+    core.playerBlocks[i].push(mb);
     var mb = new MacroBlock(3, 220 + 620 * i, 370);
     core.rootScene.addChild(mb);
+    core.playerBlocks[i].push(mb);
     var mb = new MacroBlock(4,  70 + 620 * i, 460);
     core.rootScene.addChild(mb);
+    core.playerBlocks[i].push(mb);
     var mb = new MacroBlock(5, 220 + 620 * i, 490);
     core.rootScene.addChild(mb);
+    core.playerBlocks[i].push(mb);
     var mb = new MacroBlock(6, 220 + 620 * i, 250);
     core.rootScene.addChild(mb);
+    core.playerBlocks[i].push(mb);
   }
 }
 
