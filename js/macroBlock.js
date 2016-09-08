@@ -64,6 +64,10 @@ var MacroBlock = Class.create(Group, {
     this.x = initX;
     this.y = initY;
 
+    // the position of blocks before moved
+    this.baseX = initX;
+    this.baseY = initY;
+
     this.colorID = colorID;
     this.direction = 0; // initial value
     this.numbers = getPermutation();
