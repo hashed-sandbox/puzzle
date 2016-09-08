@@ -61,6 +61,9 @@ var MacroBlock = Class.create(Group, {
     // `this` will be an instance of enchant.Group
     Group.call(this);
 
+    this.x = initX;
+    this.y = initY;
+
     this.colorID = colorID;
     this.direction = 0; // initial value
     this.numbers = getPermutation();
@@ -81,26 +84,23 @@ var MacroBlock = Class.create(Group, {
     this.paintNumberImgs();
 
     this.addEventListener("touchmove", this.handleDrag);
-
-    this.moveTo(initX, initY);
   },
 
   handleClick: function(ev) {
-    if (ev.button === 0) { // left button
-      this.isRightPressed = false;
-
-      // the position of blocks before moved
-      this.baseX = this.x;
-      this.baseY = this.y;
-
-      // the position where a mouse clicked
-      this.startX = ev.x;
-      this.startY = ev.y;
-
-    } else if (ev.button === 2) { // right button
-      this.isRightPressed = true;
-      this.rotate();
+    if (ev.button === 2) { // right button
+      this.isRightPressed = true; // disable right button dragging
+      return;
     }
+
+    this.isRightPressed = false;
+
+    // the position of blocks before moved
+    this.baseX = this.x;
+    this.baseY = this.y;
+
+    // the position where a mouse clicked
+    this.startX = ev.x;
+    this.startY = ev.y;
   },
 
   handleDrag: function(ev) {
@@ -119,6 +119,12 @@ var MacroBlock = Class.create(Group, {
   },
 
   handleRelease: function(ev) {
+    if (ev.button === 2) { // right button
+      this.rotate();
+      this.isRightPressed = false;
+      return;
+    }
+
     var nearestPos = this.getNearestPos();
     if (!this.canBePlacedAt(nearestPos.x, nearestPos.y)) {
       this.x = this.baseX;
@@ -132,6 +138,8 @@ var MacroBlock = Class.create(Group, {
     core.playerBlocks[core.activePlayer - 1][this.colorID] = null;
 
     addScore(1);
+
+    core.state = (core.state === 0) ? 1 : 3;
   },
 
   rotate: function() {
