@@ -137,9 +137,12 @@ var MacroBlock = Class.create(Group, {
     }
 
     var core = Core.instance;
+
     core.board.paintMacroBlock(this, nearestPos.x, nearestPos.y);
     core.rootScene.removeChild(this);
     core.playerBlocks[core.activePlayer - 1][this.colorID] = null;
+
+    core.rootScene.removeChild(core.btnCover);
 
     addScore(1);
 

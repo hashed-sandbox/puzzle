@@ -147,6 +147,27 @@ var Board = Class.create(Group, {
         core.rootScene.addChild(core.covers[1]);
       }
     }
+  },
+
+  bePossible: function() {
+    var core = Core.instance;
+
+    for (var i = 0; i < 7; i++) {
+      var block = core.playerBlocks[core.activePlayer - 1][i];
+      if (!block) { continue; }
+
+      for (var j = 0; j < 4; j++) {
+        for (var x = 0; x < 8; x++) {
+          for (var y = 0; y < 8; y++) {
+            if (canPlaceBlockAt(block, j, x, y)) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+
+    return false;
   }
 });
 
@@ -197,6 +218,7 @@ window.onload = function() {
   core.fps = 60;
 
   core.board = null; // placeholder
+  core.btnCover = null; // placeholder
   core.covers = []; // hold gray covers;
   core.activePlayer = 1;
   core.scoreTexts = [];
@@ -208,6 +230,7 @@ window.onload = function() {
                   // 1: 1P tracing
                   // 2: 2P dragging
                   // 3: 2P tracing
+  core.scores = [0, 0];
 
   initMouseEvents();
   preloadAssets();
@@ -283,6 +306,14 @@ window.onload = function() {
     chara2.scaleY = 1/2;
 
     /*** Change Button ***/
+    var btnCover = new Sprite(327, 165);
+    btnCover.image = core.assets["img/cover3.png"];
+    btnCover.x = 335;
+    btnCover.y = 90;
+    btnCover.scaleX =1/3;
+    btnCover.scaleY =1/3;
+    core.btnCover = btnCover;
+
     var change = new Sprite(327, 165);
     change.image = core.assets["img/change.png"];
     change.x = 335;
@@ -293,33 +324,58 @@ window.onload = function() {
     change.addEventListener("touchend", function() {
       if (core.state === 0 || core.state === 2) { return; }
 
+      core.rootScene.addChild(core.btnCover);
+
       if (core.activePlayer === 1) { // core.state === 1
         core.rootScene.removeChild(core.covers[1]);
 
         core.rootScene.removeChild(turn1);
         core.rootScene.insertBefore(turn2, chara2);
 
-        /* if (!core.board.bePossible()) {
-          // 切り替え処理
-        }*/
-
         core.activePlayer = 2;
         core.state = 2;
+
+        if (!core.board.bePossible()) {
+          core.rootScene.removeChild(core.covers[0]);
+          core.rootScene.addChild(core.covers[1]);
+
+          core.rootScene.removeChild(turn2);
+          core.rootScene.insertBefore(turn1, chara1);
+
+          core.activePlayer = 1;
+          core.state = 0;
+
+          if (!core.board.bePossible()) {
+            var resultScene = createResultScene();
+            core.pushScene(resultScene);
+          }
+        }
       } else { // core.state === 3
         core.rootScene.removeChild(core.covers[0]);
 
         core.rootScene.removeChild(turn2);
         core.rootScene.insertBefore(turn1, chara1);
 
-        /* if (!core.board.bePossible()) {
-          // 切り替え処理
-        }*/
-
         core.activePlayer = 1;
         core.state = 0;
+
+        if (!core.board.bePossible()) {
+          core.rootScene.removeChild(core.covers[1]);
+          core.rootScene.addChild(core.covers[0]);
+
+          core.rootScene.removeChild(turn1);
+          core.rootScene.insertBefore(turn2, chara2);
+
+          core.activePlayer = 2;
+          core.state = 2;
+
+          if (!core.board.bePossible()) {
+            var resultScene = createResultScene();
+            core.pushScene(resultScene);
+          }
+        }
       }
     });
-
 
     var board = new Board();
     core.board = board; // to be used by MacroBlock
@@ -345,7 +401,9 @@ window.onload = function() {
     core.rootScene.addChild(back2);
     // don't add `turn2` at the first time
     core.rootScene.addChild(chara2);
+
     core.rootScene.addChild(change);
+    core.rootScene.addChild(core.btnCover);
 
     core.rootScene.addChild(board);
 
@@ -366,6 +424,15 @@ function initMouseEvents() {
 
   stage.addEventListener("mousedown", function(e) {
     var evt = new enchant.Event("mousedown");
+    evt._initPosition(e.pageX, e.pageY);
+    evt.button = e.button;
+
+    var target = core.currentScene._determineEventTarget(evt);
+    target.dispatchEvent(evt);
+  }, false);
+
+  stage.addEventListener("mousemove", function(e) {
+    var evt = new enchant.Event("mousemove");
     evt._initPosition(e.pageX, e.pageY);
     evt.button = e.button;
 
@@ -394,17 +461,22 @@ function preloadAssets() {
   core.preload("img/holder1.png");
   core.preload("img/holder2.png");
   core.preload("img/cover.png");
+  core.preload("img/cover3.png");
   core.preload("img/numbers.png");
   core.preload("img/scoreboard1.png");
   core.preload("img/scoreboard2.png");
   core.preload("img/back1.png");
   core.preload("img/back2.png");
+  core.preload("img/back3.png");
   core.preload("img/change.png");
   core.preload("img/chara1.png");
   core.preload("img/chara2.png");
   core.preload("img/background.png");
   core.preload("img/turn1.png");
   core.preload("img/turn2.png");
+  core.preload("img/draw.png");
+  core.preload("img/win.png");
+  core.preload("img/sakura.gif");
 
   core.preload("sound/BGM1.mp3");
   core.preload("sound/BGM2.mp3");
@@ -513,9 +585,9 @@ function addScore(delta) {
   core.rootScene.removeChild(core.scoreTexts[core.activePlayer - 1]);
 
   var oldString = core.scoreTexts[core.activePlayer - 1].text;
-  var oldScore = Number(oldString);
+  var oldScore = parseInt(oldString, 10);
   var newScore = oldScore + delta;
-  var newString = String(newScore);
+  var newString = newScore.toString();
 
   if (newString.length === 1) {
     newString = "  " + newString;
@@ -535,4 +607,26 @@ function addScore(delta) {
 
   core.rootScene.addChild(infoLabel);
   core.scoreTexts[core.activePlayer - 1] = infoLabel;
+
+  core.scores[core.activePlayer - 1] += delta;
+}
+
+function canPlaceBlockAt(block, direction, x, y) {
+  var board = Core.instance.board;
+  var order = blockCords[block.colorID][direction];
+
+  var checkSum = 0;
+  for (var i = 0; i < 4; i++) {
+    var relativeX = order[i][0];
+    var relativeY = order[i][1];
+
+    if (x + relativeX < 0 || 8 <= x + relativeX ||
+        y + relativeY < 0 || 8 <= y + relativeY) {
+      return false;
+    }
+
+    checkSum += board.nums[y + relativeY][x + relativeX];
+  }
+
+  return checkSum === 0;
 }
