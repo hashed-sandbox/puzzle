@@ -581,7 +581,7 @@ function makeChain() {
   }
 
   core.se = Sound.load("sound/chain.wav");
-  core.se.volume = 0.5;
+  core.se.volume = 0.3;
   core.se.play();
 
   var chain = new Sprite(994, 493);
