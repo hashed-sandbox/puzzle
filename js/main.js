@@ -411,6 +411,9 @@ window.onload = function() {
     core.rootScene.addChild(holder2);
     putBlocks();
     core.rootScene.addChild(core.covers[1]); // hide 2P
+
+    var startScene = createStartScene();
+    core.pushScene(startScene);
   });
 
   core.start();
@@ -477,6 +480,11 @@ function preloadAssets() {
   core.preload("img/draw.png");
   core.preload("img/win.png");
   core.preload("img/sakura.gif");
+  core.preload("img/start_screen.png");
+  core.preload("img/explain.png");
+  core.preload("img/start.png");
+  core.preload("img/chain.png");
+  core.preload("img/explain2.png");
 
   core.preload("sound/BGM1.mp3");
   core.preload("sound/BGM2.mp3");
@@ -575,6 +583,19 @@ function makeChain() {
   core.se = Sound.load("sound/chain.wav");
   core.se.volume = 0.5;
   core.se.play();
+
+  var chain = new Sprite(994, 493);
+  chain.image = core.assets["img/chain.png"];
+  chain.frame = 0;
+  chain.x = 9;
+  chain.y = 135;
+  chain.scaleX = 0.3;
+  chain.scaleY = 0.3;
+  core.rootScene.addChild(chain);
+
+  setTimeout(function() {
+    core.rootScene.removeChild(chain);
+  } ,445);
 
   addScore(2);
 }
