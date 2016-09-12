@@ -81,8 +81,8 @@ var MacroBlock = Class.create(Group, {
     this.handleDrag = function(ev) {
       // ev is a DOM MouseEvent (not enchant's one)
       var core = Core.instance;
-      if ((core.activePlayer === 1 && ev.x >= 660) ||
-          (core.activePlayer === 2 && ev.x <= 340)) {
+      if ((core.activePlayer === 1 && ev.pageX >= 660) ||
+          (core.activePlayer === 2 && ev.pageX <= 340)) {
         this.x = this.baseX;
         this.y = this.baseY;
         return;
@@ -110,7 +110,6 @@ var MacroBlock = Class.create(Group, {
   },
 
   handleRelease: function(ev) {
-    console.log(200);
     if (ev.button === 2) { return this.rotate(ev.x, ev.y); } // right click
 
     this.isLeftPressed = false;
