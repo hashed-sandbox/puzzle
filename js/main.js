@@ -67,7 +67,7 @@ var Board = Class.create(Group, {
     this.firstChild.loadData(this.colors);
   },
 
-  paintMacroBlock: function(macroBlock, x, y) {
+  paintMacroBlock: function(macroBlock, x, y, isInit) {
     var core = Core.instance;
     var order = blockCords[macroBlock.colorID][macroBlock.direction];
 
@@ -141,6 +141,8 @@ var Board = Class.create(Group, {
       this.addChild(numberImg);
       this.numberImgs[y + relativeY][x + relativeX] = numberImg;
     }
+
+    if (isInit) { return; }
 
     if (core.activePlayer === 1) {
       core.rootScene.addChild(core.covers[0]);
@@ -406,6 +408,7 @@ window.onload = function() {
     core.rootScene.addChild(core.btnCover);
 
     core.rootScene.addChild(board);
+    setCenterBlock();
 
     core.rootScene.addChild(holder1);
     core.rootScene.addChild(holder2);
@@ -555,6 +558,12 @@ function putBlocks() {
     core.rootScene.addChild(mb);
     core.playerBlocks[i].push(mb);
   }
+}
+
+function setCenterBlock() {
+  var board = Core.instance.board;
+  var centerBlock = new MacroBlock(1, 0, 0);
+  board.paintMacroBlock(centerBlock, 3, 3, true);
 }
 
 function calcPosFromPx(pxX, pxY) {
