@@ -27,10 +27,10 @@ blockCords[2] = [
 ];
 
 blockCords[3] = [
-  [[0, 0], [1, 0], [1, 1], [2, 1]],
-  [[0, -1], [0, -2], [1, -2], [1, -3]],
+  [[ 0,  0], [ 1,  0], [ 1,  1], [ 2,  1]],
+  [[ 0, -1], [ 0, -2], [ 1, -2], [ 1, -3]],
   [[-1, -1], [-2, -1], [-2, -2], [-3, -2]],
-  [[-1, 0], [-1, 1], [-2, 1], [-2, 2]]
+  [[-1,  0], [-1,  1], [-2,  1], [-2,  2]]
 ];
 
 blockCords[4] = [
@@ -67,6 +67,10 @@ var MacroBlock = Class.create(Group, {
     // the position of blocks before moved
     this.baseX = initX;
     this.baseY = initY;
+
+    // to be used in resetBlocks()
+    this.initX = initX;
+    this.initY = initY;
 
     this.colorID = colorID;
     this.direction = 0; // initial value
@@ -129,6 +133,8 @@ var MacroBlock = Class.create(Group, {
     core.board.paintMacroBlock(this, nearestPos.x, nearestPos.y);
     core.rootScene.removeChild(this);
     core.playerBlocks[core.activePlayer - 1][this.colorID] = null;
+
+    resetBlocks();
 
     core.rootScene.removeChild(core.btnCover);
 
@@ -210,6 +216,18 @@ var MacroBlock = Class.create(Group, {
     }
 
     return checkSum === 0;
+  },
+
+  resetPosition: function() {
+    while (this.lastChild) { this.removeChild(this.lastChild); }
+
+    this.x = this.initX;
+    this.y = this.initY;
+
+    this.direction = 0;
+
+    this.paintMacroBlock();
+    this.paintNumberImgs();
   }
 });
 
@@ -231,4 +249,13 @@ function moveBlock() {
   core.se = Sound.load("sound/put.mp3");
   core.se.volume = 0.5;
   core.se.play();
+}
+
+function resetBlocks() {
+  var core = Core.instance;
+
+  for (var i = 0; i < 7; i++) {
+    var block = core.playerBlocks[core.activePlayer - 1][i];
+    if (block) { block.resetPosition(); }
+  }
 }
