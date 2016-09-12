@@ -80,24 +80,20 @@ var MacroBlock = Class.create(Group, {
 
     this.handleDrag = function(ev) {
       // ev is a DOM MouseEvent (not enchant's one)
-      if (this.isRightPressed) { return; }
-
       var core = Core.instance;
-        if ((core.activePlayer === 1 && ev.x >= 660) ||
-            (core.activePlayer === 2 && ev.x <= 340)) {
-          this.x = this.baseX;
-          this.y = this.baseY;
-          return;
-        }
+      if ((core.activePlayer === 1 && ev.x >= 660) ||
+          (core.activePlayer === 2 && ev.x <= 340)) {
+        this.x = this.baseX;
+        this.y = this.baseY;
+        return;
+      }
 
-        this.moveTo(this.baseX + (ev.pageX - this.startX),
-                    this.baseY + (ev.pageY - this.startY));
+      this.moveTo(this.baseX + (ev.pageX - this.startX),
+                  this.baseY + (ev.pageY - this.startY));
     }.bind(this);
 
     this.paintMacroBlock();
     this.paintNumberImgs();
-
-    this.addEventListener("touchmove", this.handleDrag);
   },
 
   handleClick: function(ev) {
@@ -114,6 +110,7 @@ var MacroBlock = Class.create(Group, {
   },
 
   handleRelease: function(ev) {
+    console.log(200);
     if (ev.button === 2) { return this.rotate(ev.x, ev.y); } // right click
 
     this.isLeftPressed = false;
