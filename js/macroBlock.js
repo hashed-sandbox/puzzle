@@ -64,7 +64,7 @@ var MacroBlock = Class.create(Group, {
     this.x = initX;
     this.y = initY;
 
-    // the position of blocks before moved
+    // the position a block should go back to
     this.baseX = initX;
     this.baseY = initY;
 
@@ -76,6 +76,24 @@ var MacroBlock = Class.create(Group, {
     this.direction = 0; // initial value
     this.numbers = getPermutation();
 
+    this.isLeftPressed = false;
+
+    this.handleDrag = function(ev) {
+      // ev is a DOM MouseEvent (not enchant's one)
+      if (this.isRightPressed) { return; }
+
+      var core = Core.instance;
+        if ((core.activePlayer === 1 && ev.x >= 660) ||
+            (core.activePlayer === 2 && ev.x <= 340)) {
+          this.x = this.baseX;
+          this.y = this.baseY;
+          return;
+        }
+
+        this.moveTo(this.baseX + (ev.pageX - this.startX),
+                    this.baseY + (ev.pageY - this.startY));
+    }.bind(this);
+
     this.paintMacroBlock();
     this.paintNumberImgs();
 
@@ -83,43 +101,25 @@ var MacroBlock = Class.create(Group, {
   },
 
   handleClick: function(ev) {
-    if (ev.button === 2) { // right button
-      this.isRightPressed = true; // disable right button dragging
-      return;
-    }
+    if (ev.button === 2) { return; } // disable right button dragging
 
-    this.isRightPressed = false;
-
-    // the position of blocks before moved
-    this.baseX = this.x;
-    this.baseY = this.y;
+    this.isLeftPressed = true;
 
     // the position where a mouse clicked
     this.startX = ev.x;
     this.startY = ev.y;
-  },
 
-  handleDrag: function(ev) {
-    if (this.isRightPressed) { return; }
-
-    var core = Core.instance;
-    if ((core.activePlayer === 1 && ev.x >= 660) ||
-        (core.activePlayer === 2 && ev.x <= 340)) {
-      this.x = this.baseX;
-      this.y = this.baseY;
-      return;
-    }
-
-    this.moveTo(this.baseX + (ev.x - this.startX),
-                this.baseY + (ev.y - this.startY));
+    var stage = Core.instance._element;
+    stage.addEventListener("mousemove", this.handleDrag, false);
   },
 
   handleRelease: function(ev) {
-    if (ev.button === 2) { // right button
-      this.rotate();
-      this.isRightPressed = false;
-      return;
-    }
+    if (ev.button === 2) { return this.rotate(ev.x, ev.y); } // right click
+
+    this.isLeftPressed = false;
+
+    var stage = Core.instance._element;
+    stage.removeEventListener("mousemove", this.handleDrag, false);
 
     var nearestPos = this.getNearestPos();
     if (!this.canBePlacedAt(nearestPos.x, nearestPos.y)) {
@@ -143,8 +143,26 @@ var MacroBlock = Class.create(Group, {
     core.state = (core.state === 0) ? 1 : 3;
   },
 
-  rotate: function() {
+  rotate: function(cx, cy) {
+    // cx, cy => the center of rotation (clicked position)
     while (this.lastChild) { this.removeChild(this.lastChild); }
+
+    var l = Math.sqrt(Math.pow(this.x - cx, 2) + Math.pow(this.y - cy, 2));
+    var theta = Math.atan2(this.y - cy, this.x - cx);
+
+    var newX = cx + l * Math.sin(theta);
+    var newY = cy - l * Math.cos(theta);
+
+    if (this.isLeftPressed) {
+      this.baseX += newX - this.x;
+      this.baseY += newY - this.y;
+    } else {
+      this.baseX = newX;
+      this.baseY = newY;
+    }
+
+    this.x = newX;
+    this.y = newY;
 
     this.direction = (this.direction + 1) % 4;
     this.paintMacroBlock();
