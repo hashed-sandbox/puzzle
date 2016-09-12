@@ -140,12 +140,12 @@ var Board = Class.create(Group, {
 
       this.addChild(numberImg);
       this.numberImgs[y + relativeY][x + relativeX] = numberImg;
+    }
 
-      if (core.activePlayer === 1) {
-        core.rootScene.addChild(core.covers[0]);
-      } else {
-        core.rootScene.addChild(core.covers[1]);
-      }
+    if (core.activePlayer === 1) {
+      core.rootScene.addChild(core.covers[0]);
+    } else {
+      core.rootScene.addChild(core.covers[1]);
     }
   },
 
