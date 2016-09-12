@@ -81,10 +81,15 @@ var MacroBlock = Class.create(Group, {
     this.handleDrag = function(ev) {
       // ev is a DOM MouseEvent (not enchant's one)
       var core = Core.instance;
-      if ((core.activePlayer === 1 && ev.pageX >= 660) ||
-          (core.activePlayer === 2 && ev.pageX <= 340)) {
-        this.x = this.baseX;
-        this.y = this.baseY;
+      if ((ev.pageY <= 160 || 560 <= ev.pageY) ||
+          (core.activePlayer === 1 && ev.pageX <=  40) ||
+          (core.activePlayer === 1 && ev.pageX >= 660) ||
+          (core.activePlayer === 2 && ev.pageX <= 340) ||
+          (core.activePlayer === 2 && ev.pageX >= 960)) {
+        var stage = core._element;
+        stage.removeEventListener("mousemove", this.handleDrag, false);
+        this.resetPosition();
+        this.isLeftPressed = false;
         return;
       }
 
@@ -237,6 +242,9 @@ var MacroBlock = Class.create(Group, {
 
     this.x = this.initX;
     this.y = this.initY;
+
+    this.baseX = this.initX;
+    this.baseY = this.initY;
 
     this.direction = 0;
 
