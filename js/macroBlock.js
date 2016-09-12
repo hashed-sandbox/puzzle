@@ -72,19 +72,7 @@ var MacroBlock = Class.create(Group, {
     this.direction = 0; // initial value
     this.numbers = getPermutation();
 
-    var blockSize = 30;
-
-    for (var i = 0; i < 4; i++) {
-      var block = new Sprite(blockSize, blockSize);
-      block.image = core.assets["img/blocks.png"];
-      block.frame = colorID;
-
-      block.x = blockCords[colorID][0][i][0] * blockSize;
-      block.y = blockCords[colorID][0][i][1] * blockSize;
-
-      this.addChild(block);
-    }
-
+    this.paintMacroBlock();
     this.paintNumberImgs();
 
     this.addEventListener("touchmove", this.handleDrag);
@@ -150,8 +138,27 @@ var MacroBlock = Class.create(Group, {
   },
 
   rotate: function() {
-    this.rotation -= 90;
+    while (this.lastChild) { this.removeChild(this.lastChild); }
+
     this.direction = (this.direction + 1) % 4;
+    this.paintMacroBlock();
+    this.paintNumberImgs();
+  },
+
+  paintMacroBlock: function() {
+    var core = Core.instance;
+    var blockSize = 30;
+
+    for (var i = 0; i < 4; i++) {
+      var block = new Sprite(blockSize, blockSize);
+      block.image = core.assets["img/blocks.png"];
+      block.frame = this.colorID;
+
+      block.x = blockCords[this.colorID][this.direction][i][0] * blockSize;
+      block.y = blockCords[this.colorID][this.direction][i][1] * blockSize;
+
+      this.addChild(block);
+    }
   },
 
   paintNumberImgs: function() {
